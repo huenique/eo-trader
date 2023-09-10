@@ -9,17 +9,17 @@ use websocket::sync::Client;
 use websocket::ClientBuilder;
 
 /// Represents a WebSocket connection to TradingView.
-pub struct TradingViewWebSocket {
+pub struct TradingView {
     client: Client<std::net::TcpStream>,
 }
 
-impl Default for TradingViewWebSocket {
+impl Default for TradingView {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl TradingViewWebSocket {
+impl TradingView {
     /// Creates a new WebSocket connection to TradingView.
     pub fn new() -> Self {
         let trading_view_socket = "wss://data.tradingview.com/socket.io/websocket";
@@ -38,26 +38,26 @@ impl TradingViewWebSocket {
 
     /// Sends a message over the WebSocket connection.
     pub fn send_message(&mut self, func: &str, args: Vec<Value>) {
-        let message = self.create_message(func, args);
+        let message = Self::create_message(func, args);
         self.client
             .send_message(&websocket::message::OwnedMessage::Text(message))
             .unwrap();
     }
 
     /// Creates a full message with header.
-    fn create_message(&self, func: &str, param_list: Vec<Value>) -> String {
-        let content = self.construct_message(func, param_list);
-        self.prepend_header(&content)
+    fn create_message(func: &str, param_list: Vec<Value>) -> String {
+        let content = Self::construct_message(func, param_list);
+        Self::prepend_header(&content)
     }
 
     /// Constructs a JSON message.
-    fn construct_message(&self, func: &str, param_list: Vec<Value>) -> String {
+    fn construct_message(func: &str, param_list: Vec<Value>) -> String {
         let message = json!({"m": func, "p": param_list});
         message.to_string()
     }
 
     /// Prepends header to content.
-    fn prepend_header(&self, content: &str) -> String {
+    fn prepend_header(content: &str) -> String {
         format!("~m~{}~m~{}", content.len(), content)
     }
 }
@@ -77,7 +77,6 @@ impl Symbol {
             .and_then(|prefix| prefix.as_str())
             .unwrap_or_else(|| data["exchange"].as_str().unwrap());
         let symbol_id = format!("{}:{}", broker.to_uppercase(), symbol_name.to_uppercase());
-        println!("{}", symbol_id);
         symbol_id
     }
 
@@ -180,5 +179,47 @@ impl SocketJob {
                 volume.unwrap_or(0.0)
             );
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_create_message() {
+        let func = "test_func";
+        let args = vec![json!("arg1"), json!(2)];
+        let expected = "~m~32~m~{\"m\":\"test_func\",\"p\":[\"arg1\",2]}";
+        let actual = TradingView::create_message(func, args);
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_prepend_header() {
+        let content = "Hello, world!";
+        let expected_result = format!("~m~{}~m~{}", content.len(), content);
+        let result = TradingView::prepend_header(content);
+        assert_eq!(result, expected_result);
+    }
+
+    #[test]
+    fn test_get_symbol_id() {
+        let expected = "BINANCE:BTCUSDT".to_string();
+        let actual = Symbol::get_symbol_id("btcusdt", "crypto");
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_generate_session() {
+        let session = Session::generate_session();
+        assert_eq!(session.session_id.len(), 15);
+        assert!(session.session_id.starts_with("qs_"));
+    }
+
+    #[test]
+    fn test_parse_price_data() {
+        let json_str = "{\"m\":\"q\",\"p\":[{\"n\":\"BTCUSDT:CRYPTO\",\"v\":{\"lp\":34200.0,\"ch\":-0.0005,\"chp\":-0.0015,\"volume\":0.0}}]}";
+        SocketJob::parse_price_data(json_str);
     }
 }
