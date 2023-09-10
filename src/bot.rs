@@ -1,20 +1,20 @@
 use futures_util::stream::StreamExt;
 use tokio_tungstenite::tungstenite::Message;
 
-use crate::websocket::WebSocket;
 use crate::candlestick::Candlestick;
+use crate::expertoption::ExpertOption;
 use crate::message::Message as BotMessage;
-use crate::trend::Trend;
 use crate::trade::Trade;
+use crate::trend::Trend;
 
 pub struct Bot {
-    ws: WebSocket,
+    ws: ExpertOption,
     trend: Trend,
     trades: Vec<Trade>,
 }
 
 impl Bot {
-    pub fn new(ws: WebSocket) -> Self {
+    pub fn new(ws: ExpertOption) -> Self {
         Self {
             ws,
             trend: Trend::Unknown,
@@ -22,7 +22,10 @@ impl Bot {
         }
     }
 
-    pub async fn run(&mut self, mut read: impl StreamExt<Item = Result<Message, tokio_tungstenite::tungstenite::Error>> + Unpin) {
+    pub async fn run(
+        &mut self,
+        mut read: impl StreamExt<Item = Result<Message, tokio_tungstenite::tungstenite::Error>> + Unpin,
+    ) {
         while let Some(msg) = read.next().await {
             match msg {
                 Ok(Message::Text(text)) => {
@@ -30,11 +33,11 @@ impl Bot {
                     self.handle_message(msg).await;
                 }
                 Ok(Message::Close(_)) => {
-                    println!("Server closed the connection");
+                    print!("Server closed the connection\n");
                     break;
                 }
                 Err(e) => {
-                    println!("Error: {}", e);
+                    print!("Error: {}\n", e);
                     break;
                 }
                 _ => {}
@@ -54,18 +57,22 @@ impl Bot {
     }
 
     async fn execute_trades(&mut self, candlestick: &Candlestick) {
-        if self.trend == Trend::Up {
-            if candlestick.has_long_tail() {
-                let trade = Trade::call(candlestick.close);
-                self.trades.push(trade);
-                self.ws.send_trade(&trade).await;
+        match self.trend {
+            Trend::Up => {
+                if candlestick.has_long_tail() {
+                    let trade = Trade::call(candlestick.close);
+                    self.trades.push(trade.clone());
+                    self.ws.send_trade(&trade).await;
+                }
             }
-        } else if self.trend == Trend::Down {
-            if candlestick.has_long_head() {
-                let trade = Trade::put(candlestick.close);
-                self.trades.push(trade);
-                self.ws.send_trade(&trade).await;
+            Trend::Down => {
+                if candlestick.has_long_head() {
+                    let trade = Trade::put(candlestick.close);
+                    self.trades.push(trade.clone());
+                    self.ws.send_trade(&trade).await;
+                }
             }
+            _ => {}
         }
     }
 }

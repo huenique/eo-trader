@@ -1,16 +1,17 @@
-use tokio_tungstenite::connect_async;
 use futures_util::stream::StreamExt;
 use std::env;
+use tokio_tungstenite::connect_async;
 
 mod bot;
 mod candlestick;
-mod websocket;
+mod expertoption;
 mod message;
-mod trend;
 mod trade;
+pub mod tradingview;
+mod trend;
 
 use bot::Bot;
-use websocket::WebSocket;
+use expertoption::ExpertOption;
 
 #[tokio::main]
 async fn main() {
@@ -21,8 +22,8 @@ async fn main() {
 
     let (write, read) = ws_stream.split();
 
-    let ws = WebSocket::new(write);
-    let bot = Bot::new(ws);
+    let ws = ExpertOption::new(write);
+    let mut bot = Bot::new(ws);
 
     bot.run(read).await;
 }

@@ -1,5 +1,6 @@
 use serde_json::json;
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct Trade {
     pub direction: String,
     pub price: f64,
@@ -25,6 +26,7 @@ impl Trade {
             "action": "trade",
             "direction": self.direction,
             "price": self.price,
-        }).to_string()
+        })
+        .to_string()
     }
 }
