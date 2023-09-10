@@ -1,21 +1,5 @@
 # eo-trader
 
-1. `main.rs`: This is the entry point of the application. It will initialize the WebSocket connection and start the bot.
-
-2. `bot.rs`: This file will contain the `Bot` struct and its associated methods. The `Bot` struct will hold the state of the bot, and the methods will implement the trading strategy.
-
-3. `candlestick.rs`: This file will contain the `Candlestick` struct and its associated methods. The `Candlestick` struct will represent a single candlestick in a chart, and the methods will provide functionality for analyzing the candlestick data.
-
-4. `websocket.rs`: This file will contain the `WebSocket` struct and its associated methods. The `WebSocket` struct will manage the WebSocket connection, and the methods will handle sending and receiving messages.
-
-5. `message.rs`: This file will contain the `Message` enum and its associated methods. The `Message` enum will represent the different types of messages that can be sent and received over the WebSocket connection.
-
-6. `trend.rs`: This file will contain the `Trend` enum and its associated methods. The `Trend` enum will represent the different types of market trends that can be identified by the bot.
-
-7. `trade.rs`: This file will contain the `Trade` struct and its associated methods. The `Trade` struct will represent a binary options trade, and the methods will provide functionality for executing trades.
-
----
-
 ## 1. Introduction
 
 This document outlines the specifications for a Binary Options Trading Bot built using Rust as the programming language and Tokio Tungstenite as the WebSocket (WS) client library. The bot is designed to connect to a WebSocket server, analyze candlestick data, and execute binary options trades based on a predefined strategy.
