@@ -13,6 +13,12 @@ pub struct TradingViewWebSocket {
     client: Client<std::net::TcpStream>,
 }
 
+impl Default for TradingViewWebSocket {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TradingViewWebSocket {
     /// Creates a new WebSocket connection to TradingView.
     pub fn new() -> Self {
@@ -81,7 +87,7 @@ impl Symbol {
             "https://symbol-search.tradingview.com/symbol_search/?text={}&type={}",
             query, category
         );
-        let response = reqwest::blocking::get(&url)?;
+        let response = reqwest::blocking::get(url)?;
         if response.status().is_success() {
             let data: Value = response.json()?;
             assert!(!data.is_null(), "Nothing Found.");
@@ -119,7 +125,7 @@ pub struct SocketJob;
 impl SocketJob {
     /// Handles WebSocket messages received by the client.
     pub fn handle_message(
-        result: &String,
+        result: &str,
         regex_: &Regex,
         ws: &mut Client<std::net::TcpStream>,
     ) -> ControlFlow<()> {
@@ -165,8 +171,8 @@ impl SocketJob {
             let change = prefix["v"]["ch"].as_f64();
             let change_percentage = prefix["v"]["chp"].as_f64();
 
-            print!(
-                "{}, price={}, change={}, change_percentage={}, volume={}\n",
+            println!(
+                "{}, price={}, change={}, change_percentage={}, volume={}",
                 symbol,
                 price.unwrap_or(0.0),
                 change.unwrap_or(0.0),

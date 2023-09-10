@@ -46,13 +46,10 @@ impl Bot {
     }
 
     async fn handle_message(&mut self, msg: BotMessage) {
-        match msg {
-            BotMessage::Candles(candles) => {
-                let candlestick = Candlestick::from_candles(&candles);
-                self.trend = candlestick.analyze_trend();
-                self.execute_trades(&candlestick).await;
-            }
-            _ => {}
+        if let BotMessage::Candles(candles) = msg {
+            let candlestick = Candlestick::from_candles(&candles);
+            self.trend = candlestick.analyze_trend();
+            self.execute_trades(&candlestick).await;
         }
     }
 
