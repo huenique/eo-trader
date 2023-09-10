@@ -15,7 +15,7 @@ use expertoption::ExpertOption;
 
 #[tokio::main]
 async fn main() {
-    let url = env::var("WEBSOCKET_URL").expect("WEBSOCKET_URL must be set");
+    let url = env::var("EO_WEBSOCKET_URL").expect("EO_WEBSOCKET_URL must be set");
 
     let (ws_stream, _) = connect_async(&url).await.expect("Failed to connect");
     println!("Connected to the server");
